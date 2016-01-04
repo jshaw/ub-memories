@@ -1,0 +1,133 @@
+/*
+ * Memories is a project built using the Particle Photon
+ * It utilizes the Particle NeoPixel library which I forked: https://github.com/jshaw/SparkCore-NeoPixel/tree/photon
+ * Video Demo: https://vimeo.com/150203209
+ *
+ */
+
+#include "application.h"
+#include "neopixel/neopixel.h"
+
+SYSTEM_MODE(AUTOMATIC);
+
+// IMPORTANT: Set pixel COUNT, PIN and TYPE
+#define PIXEL_PIN D3
+#define PIXEL_COUNT 181
+#define PIXEL_TYPE WS2812B
+
+int direction = 1;
+bool datablue = false;
+int locationChange = 0;
+
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
+
+void setup() {
+  strip.begin();
+  strip.show(); // Initialize all pixels to 'off'
+  
+  Particle.subscribe("photo_like", myHandler);
+  Particle.subscribe("enter_school", myLocationHandler);
+  Particle.subscribe("leave_school", myLocationHandler);
+}
+
+void loop() {
+    uint16_t i, j, k, l;
+
+    if(datablue == true){
+        // // BLUE
+        // for(i = 0; i < 103; i++) {
+        //     strip.setPixelColor(i, strip.Color(0, 0, 242));
+        // }
+        
+        // for(j = 103; j < 155; j++) {
+        //     strip.setPixelColor(j, strip.Color(20, 112, 191));
+        // }
+    
+        // for(k = 155; k < 179; k++) {
+        //     strip.setPixelColor(k, strip.Color(45, 102, 178));
+        // }
+        
+        // for(l = 179; l < 181; l++) {
+        //     strip.setPixelColor(l, strip.Color(111, 172, 206));
+            
+        // }
+        
+        // strip.show();
+        // delay(20);
+        
+        // BLUE
+        for(i = 0; i < 103; i++) {
+            strip.setPixelColor(i, strip.Color(242, 0, 0));
+        }
+        
+        for(j = 103; j < 155; j++) {
+            strip.setPixelColor(j, strip.Color(191, 112, 20));
+        }
+    
+        for(k = 155; k < 179; k++) {
+            strip.setPixelColor(k, strip.Color(178, 102, 45));
+        }
+        
+        for(l = 179; l < 181; l++) {
+            strip.setPixelColor(l, strip.Color(206, 172, 111));
+            
+        }
+        
+        strip.show();
+        delay(20);
+        
+    } else {
+        rainbow(20);
+    }
+
+}
+
+void myHandler(const char *event, const char *data) {
+    Serial.print("IN CALLBACK");
+    Serial.print(event);
+    Serial.print(", data: ");
+    if (data){
+        Serial.println(data);
+        datablue = true;
+    }else{
+        Serial.println("NULL");
+    }
+}
+
+void myLocationHandler(const char *event, const char *data) {
+    Serial.print("Location CALLBACK");
+    Serial.print(event);
+    Serial.print(", data: ");
+    if (data){
+        Serial.println(data);
+        locationChange = 1;
+    }else{
+        Serial.println("NULL");
+    }
+}
+
+void rainbow(uint8_t wait) {
+  uint16_t i, j;
+
+  for(j=0; j<256; j++) {
+    for(i=0; i<strip.numPixels(); i++) {
+      strip.setPixelColor(i, Wheel((i+j) & 255));
+    }
+    strip.show();
+    delay(wait);
+  }
+}
+
+// Input a value 0 to 255 to get a color value.
+// The colours are a transition r - g - b - back to r.
+uint32_t Wheel(byte WheelPos) {
+  if(WheelPos < 85) {
+   return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+  } else if(WheelPos < 170) {
+   WheelPos -= 85;
+   return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+  } else {
+   WheelPos -= 170;
+   return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+  }
+}
